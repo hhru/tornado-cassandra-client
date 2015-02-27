@@ -1,0 +1,17 @@
+python-tassandra (0.0.3) unstable; urgency=low
+
+  * Show number of backends tried for request
+
+ -- Danil Smirnov <d.smirnov@hh.ru>  Fri, 27 Mar 2015 11:48:22 +0300
+
+python-tassandra (0.0.2) unstable; urgency=low
+
+  * Fixes
+
+ -- Danil Smirnov <d.smirnov@hh.ru>  Thu, 12 Mar 2015 16:05:06 +0300
+
+python-tassandra (0.0.1) unstable; urgency=low
+
+  * Initial release.
+
+ -- Danil Smirnov <d.smirnov@hh.ru>  Mon, 09 Mar 2015 17:52:51 +0300

@@ -1,0 +1,22 @@
+Source: python-tassandra
+Section: python
+Priority: extra
+Maintainer: Danil Smirnov <aulust@gmail.com>
+Build-Depends: 
+  debhelper (>= 8),
+  python,
+  python-support,
+  python-setuptools,
+  python-nose,
+Standards-Version: 3.9.3
+X-Python-Version: >= 2.7
+
+Package: python-tassandra
+Architecture: all
+Depends:
+  ${python:Depends},
+  ${misc:Depends},
+  python, 
+  python-cassandra-driver,
+  python-tornado,
+Description: Tornado cassandra client

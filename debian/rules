@@ -1,0 +1,11 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@
+
+override_dh_auto_clean:
+	dh_auto_clean
+	rm -rf build .*egg-info *.log *.pid .coverage*
+
+override_dh_auto_test:
+	python setup.py test || exit 1
