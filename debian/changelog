@@ -1,3 +1,9 @@
+python-tassandra (0.0.4) unstable; urgency=low
+
+  * OS X support
+
+ -- Danil Smirnov <d.smirnov@hh.ru>  Tue, 28 Apr 2015 15:30:11 +0300
+
 python-tassandra (0.0.3) unstable; urgency=low
 
   * Show number of backends tried for request

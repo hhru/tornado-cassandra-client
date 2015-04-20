@@ -136,7 +136,11 @@ class Connection(object):
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
         sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 3)
         sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 1)
-        sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 1)
+
+        try:
+            sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 1)
+        except AttributeError:
+            log.debug('socket doesn\'t seem to support TCP_KEEPIDLE option')
 
         try:
             setattr(socket, 'TCP_USER_TIMEOUT', 18)
