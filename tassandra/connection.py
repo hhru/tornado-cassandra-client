@@ -7,13 +7,11 @@ from functools import wraps
 
 from tornado.iostream import IOStream
 
-from cassandra.protocol import decode_response, StartupMessage, ReadyMessage, ErrorMessage
-from cassandra.marshal import v3_header_unpack, int32_unpack
+from tassandra.protocol import StartupMessage, ReadyMessage, ErrorMessage, parse_response
+from tassandra.protocol.internal import parse_header
 
 
-HEADER_LENGTH = 5
-FULL_HEADER_LENGTH = 9
-DEFAULT_CQL_VERSION = '3.0.0'
+HEADER_LENGTH = 9
 DEFAULT_CQL_VERSION_NUMBER = 3
 RECONNECT_TIMEOUT = 0.2
 MAXIMUM_RECONNECT_TIMEOUT = 5
@@ -38,7 +36,7 @@ def close_on_error(callback):
         try:
             return callback(self, *args, **kwargs)
         except Exception:
-            log.exception('unhandled exception in callback, close connection')
+            log.exception('unhandled exception in callback, closing connection')
             self.close()
 
     return wrapper
@@ -53,7 +51,11 @@ class Connection(object):
         self.status_callback = status_callback
         self.max_request_id = (2 ** 15) - 1
         self.reconnect_timeout = RECONNECT_TIMEOUT
-        self._header = None
+
+        # request fields
+        self._flags = None
+        self._stream_id = None
+        self._opcode = None
 
         self._connect()
 
@@ -83,30 +85,24 @@ class Connection(object):
 
     @close_on_error
     def body_cb(self, body):
-        version, flags, stream_id, opcode = v3_header_unpack(self._header)
-
         if not self.request_ids and self.highest_request_id >= self.max_request_id:
             self.status_callback(self.identifier, True)
 
-        self.request_ids.append(stream_id)
+        self.request_ids.append(self._stream_id)
 
-        response = decode_response(DEFAULT_CQL_VERSION_NUMBER, None, stream_id, flags, opcode, body)
-        self._callbacks[stream_id](response)
-        self.stream.read_bytes(FULL_HEADER_LENGTH, self.header_cb)
+        response = parse_response(self._stream_id, self._flags, self._opcode, body)
+        self._callbacks[self._stream_id](response)
+        self.stream.read_bytes(HEADER_LENGTH, self.header_cb)
 
     @close_on_error
     def header_cb(self, header):
-        self._header = header[:HEADER_LENGTH]
-
-        body_len = int32_unpack(header[-4:])
+        (_, self._flags, self._stream_id, self._opcode, body_len) = parse_header(header[:HEADER_LENGTH])
         self.stream.read_bytes(body_len, self.body_cb)
 
     @close_on_error
     def connected_callback(self):
-        self.stream.read_bytes(FULL_HEADER_LENGTH, self.header_cb)
-
-        sm = StartupMessage(cqlversion=DEFAULT_CQL_VERSION, options={})
-        self.send_msg(sm, cb=self._handle_startup_response)
+        self.stream.read_bytes(HEADER_LENGTH, self.header_cb)
+        self.send_msg(StartupMessage(), cb=self._handle_startup_response)
 
     @close_on_error
     def _handle_startup_response(self, message):
@@ -163,4 +159,4 @@ class Connection(object):
             self.status_callback(self.identifier, False)
 
         self._callbacks[request_id] = cb
-        self.stream.write(query.to_binary(request_id, DEFAULT_CQL_VERSION_NUMBER))
+        self.stream.write(query.serialize(request_id, DEFAULT_CQL_VERSION_NUMBER))

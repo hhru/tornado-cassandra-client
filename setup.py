@@ -35,7 +35,6 @@ setup(
     packages=['tassandra'],
     install_requires=[
         'tornado',
-        'cassandra-driver'
     ],
     tests_require=[
         'nose',

@@ -16,7 +16,6 @@ Architecture: all
 Depends:
   ${python:Depends},
   ${misc:Depends},
-  python, 
-  python-cassandra-driver,
+  python,
   python-tornado,
 Description: Tornado cassandra client
