@@ -10,6 +10,7 @@ from tornado.iostream import IOStream
 from cassandra.protocol import decode_response, StartupMessage, ReadyMessage, ErrorMessage
 from cassandra.marshal import v3_header_unpack, int32_unpack
 
+from tassandra.compat import itervalues
 
 HEADER_LENGTH = 5
 FULL_HEADER_LENGTH = 9
@@ -74,7 +75,7 @@ class Connection(object):
             self.stream.set_close_callback(None)
             self.stream.close()
 
-        for callback in self._callbacks.itervalues():
+        for callback in itervalues(self._callbacks):
             callback(ConnectionShutdown())
 
         log.debug('reconnect in %f', self.reconnect_timeout)

@@ -19,9 +19,7 @@ class BuildHook(build_py):
 
 
 class TestHook(test):
-    def run(self):
-        test.run(self)
-
+    def run_tests(self):
         import nose
         nose.main(argv=['tests', '-v'])
 
@@ -38,8 +36,9 @@ setup(
         'cassandra-driver==2.1.3'
     ],
     tests_require=[
+        'ccm',
         'nose',
-        'pep8',
+        'pycodestyle',
     ],
     zip_safe=False
 )
