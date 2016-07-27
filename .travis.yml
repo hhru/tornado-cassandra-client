@@ -1,0 +1,20 @@
+language: python
+matrix:
+  include:
+    - python: "2.7"
+    - python: "3.3"
+    - python: "3.4"
+    - python: "3.5"
+install:
+  - pip install codecov
+  - python setup.py install
+  - mkdir ~/.python-eggs
+  - chmod og-wx ~/.python-eggs
+script:
+  - python setup.py test
+sudo: false
+after_success:
+  - rm .coverage -f
+  - coverage run setup.py test
+  - coverage report -m
+  - bash <(curl -s https://codecov.io/bash)

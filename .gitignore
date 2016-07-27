@@ -2,3 +2,8 @@
 .idea/
 *.iml
 *.egg-info/
+.eggs/
+.tox/
+*.egg/
+*.egg
+.coverage

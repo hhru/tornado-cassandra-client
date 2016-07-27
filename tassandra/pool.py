@@ -67,7 +67,13 @@ class Pool(object):
                 request.future.set_exception(message)
         else:
             self._decrease_consecutive_errors(request)
-            request.future.set_result(named_tuple_factory(*message.results))
+
+            if isinstance(message.results, tuple):
+                result = named_tuple_factory(*message.results)
+            else:
+                result = message.results
+
+            request.future.set_result(result)
 
     def execute(self, request):
         key = object()
