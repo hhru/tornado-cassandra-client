@@ -2,6 +2,7 @@
 
 import socket
 import logging
+import time
 from collections import deque
 from functools import wraps
 
@@ -91,7 +92,9 @@ class Connection(object):
 
         self.request_ids.append(stream_id)
 
+        start_time = time.time()
         response = decode_response(DEFAULT_CQL_VERSION_NUMBER, None, stream_id, flags, opcode, body)
+        log.debug('decode response time: %.2f ms', (time.time() - start_time) * 1000)
         self._callbacks[stream_id](response)
         self.stream.read_bytes(FULL_HEADER_LENGTH, self.header_cb)
 
