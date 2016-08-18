@@ -1,3 +1,9 @@
+python-tassandra (0.0.6) unstable; urgency=low
+
+  * Bump version up to 0.0.6
+
+ -- Automated Build <al.dmitriev@hh.ru>  Thu, 18 Aug 2016 14:42:45 +0300
+
 python-tassandra (0.0.5) unstable; urgency=low
 
   * Bump version up to 0.0.5
