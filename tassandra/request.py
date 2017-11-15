@@ -2,21 +2,35 @@
 
 
 class Request(object):
-    def __init__(self, query, future, timeout, retry=0):
+    def __init__(self, query, future, timeouts, tries=0):
+        self._timeout_handler = None
+
         self.query = query
+        self.timeouts = timeouts
         self.future = future
-        self.timeout = timeout
-        self.retry = retry
-        self.tried = 0
+
         self.current_connection = None
-        self.timeout_handler = None
+        self.used_connections_bitmap = 0
+        self.tries = tries
+        self.failed = False
 
-    def check_retry(self):
-        self.retry += 1
-        return self.retry < len(self.timeout)
+    def is_retry_possible(self):
+        return self.tries < len(self.timeouts)
 
-    def get_current_timeout(self):
-        return self.timeout[self.retry]
+    def arm_timeout_handler(self, io_loop, timeout_callback):
+        self._timeout_handler = io_loop.add_timeout(io_loop.time() + self.timeouts[self.tries],
+                                                    timeout_callback)
+
+    def register_response(self, io_loop, response):
+        if self._timeout_handler is not None:
+            io_loop.remove_timeout(self._timeout_handler)
+        self.tries += 1
+        self.failed = isinstance(response, Exception)
+
+    def send(self, connection, result_callback):
+        self.used_connections_bitmap |= connection.identifier
+        self.current_connection = connection
+        connection.send_msg(self.query, result_callback)
 
     def __str__(self):
-        return 'Request, {} of {} retries'.format(bin(self.tried).count('1'), len(self.timeout))
+        return 'Request, {} of {} retries'.format(self.tries, len(self.timeouts))
