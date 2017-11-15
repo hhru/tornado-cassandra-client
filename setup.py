@@ -21,7 +21,7 @@ class BuildHook(build_py):
 class TestHook(test):
     def run_tests(self):
         import nose
-        nose.main(argv=['tests', '-v'])
+        nose.main(argv=['nosetests', 'tests', '-v'])
 
 setup(
     name='tassandra',
@@ -31,6 +31,7 @@ setup(
     url='https://github.com/hhru/tornado-cassandra-client',
     cmdclass={'build_py': BuildHook, 'test': TestHook},
     packages=['tassandra'],
+    test_suite='tests',
     install_requires=[
         'tornado',
         'cassandra-driver==2.1.3'
@@ -38,7 +39,7 @@ setup(
     tests_require=[
         'ccm',
         'nose',
-        'pycodestyle',
+        'pycodestyle == 2.2.0',
     ],
     zip_safe=False
 )

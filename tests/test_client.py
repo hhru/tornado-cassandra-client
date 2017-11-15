@@ -20,7 +20,8 @@ class TestClient(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls.ccm_cluster.remove()
+        cls.ccm_cluster.stop(wait=False, gently=False)
+        cls.ccm_cluster.remove_dir_with_retry(cls.ccm_cluster.get_path())
 
     def test_simple(self):
         @coroutine
