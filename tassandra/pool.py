@@ -77,7 +77,7 @@ class Pool(object):
     def execute(self, request):
         key = object()
 
-        request.arm_timeout_handler(self.io_loop, functools.partial(self._on_timeout, key))
+        request.add_timeout(self.io_loop, functools.partial(self._on_timeout, key))
 
         self.queue.append(key)
         self.queries[key] = request
@@ -93,8 +93,8 @@ class Pool(object):
             connection = self.get_connection(request.used_connections_bitmap)
             request.send(connection, functools.partial(self.result_callback, key))
 
-    def get_connection(self, used_connections_mask):
-        possible = self.status_mask & ~ used_connections_mask
+    def get_connection(self, used_connections_bitmap):
+        possible = self.status_mask & ~ used_connections_bitmap
         if possible == 0:
             possible = self.status_mask
 
@@ -116,11 +116,10 @@ class Pool(object):
 
     def _log_stats(self, request):
         if self.statsd_client and request is not None:
-            metric_name = 'tassandra.{}'.format('requests' if request.tries == 1 else 'retries')
-            self.statsd_client.count(metric_name, 1,
+            self.statsd_client.count('cassandra.requests', 1,
                                      server=request.current_connection.host,
                                      already_tried=request.tries,
-                                     failed=request.failed)
+                                     failed='true' if request.failed else 'false')
 
     @staticmethod
     def _decrease_consecutive_errors(request):
