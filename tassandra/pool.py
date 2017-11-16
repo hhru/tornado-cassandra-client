@@ -17,7 +17,7 @@ CONSECUTIVE_ERRORS_LIMIT = 500
 
 
 class Pool(object):
-    def __init__(self, contact_points, port, io_loop):
+    def __init__(self, contact_points, port, io_loop, statsd_client=None):
         self.io_loop = io_loop
         self.queue = collections.deque()
         self.queries = {}
@@ -30,7 +30,7 @@ class Pool(object):
             self.connections.append(
                 Connection(identifier, contact_point, port, self.io_loop, self.connection_status_callback))
             identifier <<= 1
-
+        self.statsd_client = statsd_client
         log.info('connection pool to %s initialized', contact_points)
 
     def connection_status_callback(self, identifier, status):
@@ -53,14 +53,13 @@ class Pool(object):
         if key in self.queue:
             self.queue.remove(key)
 
-        if request.timeout_handler is not None:
-            self.io_loop.remove_timeout(request.timeout_handler)
-            request.timeout_handler = None
+        request.register_response(self.io_loop, message)
+        self._log_stats(request)
 
-        if isinstance(message, Exception):
+        if request.failed:
             self._increase_consecutive_errors(request)
 
-            if request.check_retry():
+            if request.is_retry_possible():
                 self.execute(request)
             else:
                 message.message += '(' + str(request) + ')'
@@ -78,8 +77,7 @@ class Pool(object):
     def execute(self, request):
         key = object()
 
-        request.timeout_handler = self.io_loop.add_timeout(self.io_loop.time() + request.get_current_timeout(),
-                                                           functools.partial(self._on_timeout, key))
+        request.add_timeout(self.io_loop, functools.partial(self._on_timeout, key))
 
         self.queue.append(key)
         self.queries[key] = request
@@ -92,14 +90,11 @@ class Pool(object):
         while self.queue and self.status_mask != 0:
             key = self.queue.popleft()
             request = self.queries[key]
+            connection = self.get_connection(request.used_connections_bitmap)
+            request.send(connection, functools.partial(self.result_callback, key))
 
-            connection = self.get_connection(request.tried)
-            request.tried |= connection.identifier
-            request.current_connection = connection
-            connection.send_msg(request.query, functools.partial(self.result_callback, key))
-
-    def get_connection(self, tried):
-        possible = self.status_mask & ~ tried
+    def get_connection(self, used_connections_bitmap):
+        possible = self.status_mask & ~ used_connections_bitmap
         if possible == 0:
             possible = self.status_mask
 
@@ -119,7 +114,15 @@ class Pool(object):
             log.info('closing connection to %s due to consecutive errors limit exceeded', connection.host)
             connection.close()
 
-    def _decrease_consecutive_errors(self, request):
+    def _log_stats(self, request):
+        if self.statsd_client and request is not None:
+            self.statsd_client.count('cassandra.requests', 1,
+                                     server=request.current_connection.host,
+                                     already_tried=request.tries,
+                                     failed='true' if request.failed else 'false')
+
+    @staticmethod
+    def _decrease_consecutive_errors(request):
         if request.current_connection is None:
             return
 
