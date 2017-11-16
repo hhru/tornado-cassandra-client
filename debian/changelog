@@ -1,3 +1,12 @@
+python-tassandra (0.0.7) unstable; urgency=medium
+
+  * HH-73640 change metric to 'cassandra.requests'
+  * HH-73640 remove python 3.3 from CI check
+  * HH-73640 fix build settings
+  * HH-73640 adds request logging
+
+ -- Automated Build <d.zharikhin@hh.ru>  Thu, 16 Nov 2017 12:37:11 +0300
+
 python-tassandra (0.0.6) unstable; urgency=low
 
   * Bump version up to 0.0.6
