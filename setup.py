@@ -1,6 +1,7 @@
 # coding=utf-8
 
 import os
+import sys
 
 from setuptools import setup
 from setuptools.command.build_py import build_py
@@ -33,7 +34,7 @@ setup(
     packages=['tassandra'],
     test_suite='tests',
     install_requires=[
-        'tornado',
+        'tornado<=4.9.9',
         'cassandra-driver==2.1.3'
     ],
     tests_require=[

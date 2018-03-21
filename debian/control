@@ -3,15 +3,20 @@ Section: python
 Priority: extra
 Maintainer: Danil Smirnov <aulust@gmail.com>
 Build-Depends: 
-  debhelper (>= 8),
+  debhelper (>= 9),
   python,
+  python-dev,
+  python3-dev,
   python-support,
   python-setuptools,
+  python3-setuptools,
   python-nose,
+  python3-nose,
   python-cassandra-driver,
-  python-tornado,
+  python3-cassandra-driver3,
 Standards-Version: 3.9.3
 X-Python-Version: >= 2.7
+X-Python3-Version: >= 3.4
 
 Package: python-tassandra
 Architecture: all
@@ -22,3 +27,13 @@ Depends:
   python-cassandra-driver,
   python-tornado,
 Description: Tornado cassandra client
+
+
+Package: python3-tassandra
+Architecture: all
+Depends:
+  ${python3:Depends},
+  ${misc:Depends},
+  python3,
+  python3-cassandra-driver3,
+Description: Tornado cassandra client for Python 3
