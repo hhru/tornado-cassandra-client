@@ -8,7 +8,7 @@ from functools import wraps
 
 from tornado.iostream import IOStream
 
-from cassandra.protocol import decode_response, StartupMessage, ReadyMessage, ErrorMessage
+from cassandra.protocol import ProtocolHandler, StartupMessage, ReadyMessage, ErrorMessage
 from cassandra.marshal import v3_header_unpack, int32_unpack
 
 from tassandra.compat import itervalues
@@ -93,7 +93,8 @@ class Connection(object):
         self.request_ids.append(stream_id)
 
         start_time = time.time()
-        response = decode_response(DEFAULT_CQL_VERSION_NUMBER, None, stream_id, flags, opcode, body)
+        response = ProtocolHandler.decode_message(
+            DEFAULT_CQL_VERSION_NUMBER, None, stream_id, flags, opcode, body, None, None)
         log.debug('decode response time: %.2f ms', (time.time() - start_time) * 1000)
         self._callbacks[stream_id](response)
         self.stream.read_bytes(FULL_HEADER_LENGTH, self.header_cb)
@@ -167,4 +168,4 @@ class Connection(object):
             self.status_callback(self.identifier, False)
 
         self._callbacks[request_id] = cb
-        self.stream.write(query.to_binary(request_id, DEFAULT_CQL_VERSION_NUMBER))
+        self.stream.write(ProtocolHandler.encode_message(query, request_id, DEFAULT_CQL_VERSION_NUMBER, None, False))

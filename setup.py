@@ -1,7 +1,6 @@
 # coding=utf-8
 
 import os
-import sys
 
 from setuptools import setup
 from setuptools.command.build_py import build_py
@@ -35,7 +34,7 @@ setup(
     test_suite='tests',
     install_requires=[
         'tornado<=4.9.9',
-        'cassandra-driver==2.1.3'
+        'cassandra-driver>=3.7'
     ],
     tests_require=[
         'ccm',
