@@ -1,3 +1,10 @@
+python-tassandra (1.0.0) unstable; urgency=medium
+
+  * HH-77589 cassandra version up
+  * HH-77589 python 3 debianization
+
+ -- Automated Build <a.pertsev@hh.ru>  Fri, 23 Mar 2018 16:56:49 +0300
+
 python-tassandra (0.0.7) unstable; urgency=medium
 
   * HH-73640 change metric to 'cassandra.requests'
