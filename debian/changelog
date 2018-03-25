@@ -1,3 +1,9 @@
+python-tassandra (1.0.2) unstable; urgency=medium
+
+  * HH-77675 new tassandra dependency fixed
+
+ -- Automated Build <a.pertsev@hh.ru>  Sun, 25 Mar 2018 23:04:26 +0300
+
 python-tassandra (1.0.1) unstable; urgency=medium
 
   * HH-77589 cassandra version up
