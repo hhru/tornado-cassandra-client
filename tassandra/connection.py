@@ -6,6 +6,7 @@ import time
 from collections import deque
 from functools import wraps
 
+from tornado.ioloop import IOLoop
 from tornado.iostream import IOStream
 
 from cassandra.protocol import ProtocolHandler, StartupMessage, ReadyMessage, ErrorMessage
@@ -47,9 +48,8 @@ def close_on_error(callback):
 
 
 class Connection(object):
-    def __init__(self, identifier, host, port, io_loop, status_callback):
+    def __init__(self, identifier, host, port, status_callback):
         self.identifier = identifier
-        self.io_loop = io_loop
         self.host = host
         self.port = port
         self.status_callback = status_callback
@@ -80,7 +80,7 @@ class Connection(object):
             callback(ConnectionShutdown())
 
         log.debug('reconnect in %f', self.reconnect_timeout)
-        self.io_loop.add_timeout(self.io_loop.time() + self.reconnect_timeout, self._connect)
+        IOLoop.current().call_later(self.reconnect_timeout, self._connect)
         self.reconnect_timeout = min(self.reconnect_timeout * 2, MAXIMUM_RECONNECT_TIMEOUT)
 
     @close_on_error
@@ -153,7 +153,7 @@ class Connection(object):
         except socket.error:
             log.debug('this kernel doesn\'t seem to support TCP_USER_TIMEOUT')
 
-        self.stream = IOStream(sock, io_loop=self.io_loop)
+        self.stream = IOStream(sock)
         self.stream.connect((self.host, self.port), self.connected_callback)
         self.stream.set_close_callback(self.close)
 
