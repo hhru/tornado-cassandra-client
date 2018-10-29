@@ -6,6 +6,7 @@ import logging
 import random
 
 from cassandra.query import named_tuple_factory
+from tornado.ioloop import IOLoop
 
 from tassandra.connection import Connection, RequestTimeout
 
@@ -17,8 +18,7 @@ CONSECUTIVE_ERRORS_LIMIT = 500
 
 
 class Pool(object):
-    def __init__(self, contact_points, port, io_loop, statsd_client=None):
-        self.io_loop = io_loop
+    def __init__(self, contact_points, port, statsd_client=None):
         self.queue = collections.deque()
         self.queries = {}
         self.num_connection = len(contact_points)
@@ -28,7 +28,7 @@ class Pool(object):
         identifier = 1
         for contact_point in contact_points:
             self.connections.append(
-                Connection(identifier, contact_point, port, self.io_loop, self.connection_status_callback))
+                Connection(identifier, contact_point, port, self.connection_status_callback))
             identifier <<= 1
         self.statsd_client = statsd_client
         log.info('connection pool to %s initialized', contact_points)
@@ -36,7 +36,7 @@ class Pool(object):
     def connection_status_callback(self, identifier, status):
         if status:
             self.status_mask |= identifier
-            self.io_loop.add_callback(self._process_queue)
+            IOLoop.current().add_callback(self._process_queue)
         else:
             self.status_mask &= ~identifier
 
@@ -53,7 +53,7 @@ class Pool(object):
         if key in self.queue:
             self.queue.remove(key)
 
-        request.register_response(self.io_loop, message)
+        request.register_response(message)
         self._log_stats(request)
 
         if request.failed:
@@ -77,7 +77,7 @@ class Pool(object):
     def execute(self, request):
         key = object()
 
-        request.add_timeout(self.io_loop, functools.partial(self._on_timeout, key))
+        request.add_timeout(functools.partial(self._on_timeout, key))
 
         self.queue.append(key)
         self.queries[key] = request

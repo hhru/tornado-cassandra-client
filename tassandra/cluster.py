@@ -20,7 +20,7 @@ class Cluster(object):
             if isinstance(contact_points, six.string_types):
                 raise TypeError('contact_points should not be a string, it should be a sequence (e.g. list) of strings')
 
-        self.pool = Pool(contact_points, port, IOLoop.instance(), statsd_client)
+        self.pool = Pool(contact_points, port, statsd_client)
 
     def execute(self, query, timeout=DEFAULT_TIMEOUT):
         if not isinstance(timeout, collections.Iterable):
