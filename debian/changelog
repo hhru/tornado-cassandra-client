@@ -1,3 +1,9 @@
+python-tassandra (2.0.0) unstable; urgency=medium
+
+  * HH-84687 prepare for tornado 5
+
+ -- Automated Build <an.sumin@hh.ru>  Mon, 29 Oct 2018 17:56:55 +0300
+
 python-tassandra (1.0.2) unstable; urgency=medium
 
   * HH-77675 new tassandra dependency fixed
