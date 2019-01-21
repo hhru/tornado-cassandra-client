@@ -6,7 +6,7 @@ from setuptools import setup
 from setuptools.command.build_py import build_py
 from setuptools.command.test import test
 
-from tassandra.version import version as __version__
+from tassandra.version import version
 
 
 class BuildHook(build_py):
@@ -15,7 +15,7 @@ class BuildHook(build_py):
 
         build_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), self.build_lib, 'tassandra')
         with open(os.path.join(build_dir, 'version.py'), 'w') as version_file:
-            version_file.write('version = "{0}"\n'.format(__version__))
+            version_file.write('version = "{0}"\n'.format(version))
 
 
 class TestHook(test):
@@ -25,7 +25,7 @@ class TestHook(test):
 
 setup(
     name='tassandra',
-    version=__import__('tassandra').__version__,
+    version=version,
     description='Tornado cassandra client',
     long_description=open('README.md').read(),
     url='https://github.com/hhru/tornado-cassandra-client',

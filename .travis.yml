@@ -1,17 +1,14 @@
 language: python
 matrix:
   include:
-    - python: "2.7"
-    - python: "3.4"
-    - python: "3.5"
-    - python: "3.6"
+    - os: linux
+      dist: trusty
+      python: "3.6"
 install:
-  - pip install codecov
-  - python setup.py install
-  - mkdir ~/.python-eggs
-  - chmod og-wx ~/.python-eggs
+  - pip3 install codecov
+  - python3 setup.py install
 script:
-  - python setup.py test
+  - python3 setup.py test
 sudo: false
 after_success:
   - rm .coverage -f
