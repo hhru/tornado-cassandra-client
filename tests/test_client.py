@@ -11,7 +11,6 @@ from tornado.ioloop import IOLoop
 import ccmlib.cluster
 
 
-@unittest.skip("this unittest is broken — attempts to bind to 9042")
 class TestClient(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
