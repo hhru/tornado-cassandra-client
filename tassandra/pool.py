@@ -8,8 +8,7 @@ import random
 from cassandra.query import named_tuple_factory
 from tornado.ioloop import IOLoop
 
-from tassandra.connection import Connection, RequestTimeout
-
+from tassandra.connection import Connection, RequestTimeout, ConnectionShutdown
 
 log = logging.getLogger('tassandra.pool')
 
@@ -62,7 +61,8 @@ class Pool(object):
             if request.is_retry_possible():
                 self.execute(request)
             else:
-                message.message += '(' + str(request) + ')'
+                if isinstance(message, ConnectionShutdown) or isinstance(message, RequestTimeout):
+                    message.request = request
                 request.future.set_exception(message)
         else:
             self._decrease_consecutive_errors(request)

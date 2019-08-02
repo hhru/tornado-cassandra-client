@@ -26,13 +26,22 @@ log = logging.getLogger('tassandra.connection')
 
 
 class ConnectionShutdown(Exception):
+
+    def __init__(self, host=None, request=None):
+        self.host = host
+        self.request = request
+
     def __str__(self):
-        return 'Connection Shutdown Exception: ' + self.message
+        return 'Connection to {} closed ({})'.format(self.host, self.request)
 
 
 class RequestTimeout(Exception):
+
+    def __init__(self, request=None):
+        self.request = request
+
     def __str__(self):
-        return 'Request Timeout Exception: ' + self.message
+        return 'Request Timeout Exception: {}'.format(self.request)
 
 
 def close_on_error(callback):
@@ -77,7 +86,7 @@ class Connection(object):
             self.stream.close()
 
         for callback in itervalues(self._callbacks):
-            callback(ConnectionShutdown())
+            callback(ConnectionShutdown(host=self.host))
 
         log.debug('reconnect in %f', self.reconnect_timeout)
         IOLoop.current().call_later(self.reconnect_timeout, self._connect)
@@ -159,7 +168,7 @@ class Connection(object):
 
     def send_msg(self, query, cb):
         if self.stream.closed():
-            cb(ConnectionShutdown())
+            cb(ConnectionShutdown(self.host))
             return
 
         request_id = self.get_request_id()
