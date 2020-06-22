@@ -67,10 +67,12 @@ class Pool(object):
         else:
             self._decrease_consecutive_errors(request)
 
-            if isinstance(message.results, tuple):
-                result = named_tuple_factory(*message.results)
+            if message.schema_change_event is not None:
+                result = message.schema_change_event
+            elif message.parsed_rows is not None:
+                result = named_tuple_factory(message.column_names, message.parsed_rows)
             else:
-                result = message.results
+                result = None
 
             request.future.set_result(result)
 
