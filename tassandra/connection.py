@@ -51,7 +51,7 @@ def close_on_error(callback):
             return callback(self, *args, **kwargs)
         except Exception:
             log.exception('unhandled exception in callback, close connection')
-            self.close()
+            self.reconnect()
 
     return wrapper
 
@@ -77,8 +77,6 @@ class Connection(object):
             return self.highest_request_id
 
     def close(self):
-        log.info('connection to %s closed.', self.host)
-
         self.status_callback(self.identifier, False)
 
         if not self.stream.closed():
@@ -87,6 +85,11 @@ class Connection(object):
 
         for callback in itervalues(self._callbacks):
             callback(ConnectionShutdown(host=self.host))
+
+    def reconnect(self):
+        log.info('connection to %s closed.', self.host)
+
+        self.close()
 
         log.debug('reconnect in %f', self.reconnect_timeout)
         IOLoop.current().call_later(self.reconnect_timeout, self._connect)
@@ -131,12 +134,12 @@ class Connection(object):
             log.info('connection to %s established', self.host)
         elif isinstance(message, ErrorMessage):
             log.info('closing connection to %s due to startup error: %s', self.host, message.summary_msg())
-            self.close()
+            self.reconnect()
         elif isinstance(message, ConnectionShutdown):
             log.debug('connection to %s was closed during the startup handshake', self.host)
         else:
             log.error('closing connection to %s due to unexpected response during startup: %r', self.host, message)
-            self.close()
+            self.reconnect()
 
     def _connect(self):
         log.debug('attempt to connect to %s.', self.host)
@@ -164,7 +167,7 @@ class Connection(object):
 
         self.stream = IOStream(sock)
         self.stream.connect((self.host, self.port), self.connected_callback)
-        self.stream.set_close_callback(self.close)
+        self.stream.set_close_callback(self.reconnect)
 
     def send_msg(self, query, cb):
         if self.stream.closed():
