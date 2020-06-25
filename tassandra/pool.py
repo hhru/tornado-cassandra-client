@@ -18,6 +18,7 @@ CONSECUTIVE_ERRORS_LIMIT = 500
 
 class Pool(object):
     def __init__(self, contact_points, port, statsd_client=None):
+        self.closed = False
         self.queue = collections.deque()
         self.queries = {}
         self.num_connection = len(contact_points)
@@ -31,6 +32,17 @@ class Pool(object):
             identifier <<= 1
         self.statsd_client = statsd_client
         log.info('connection pool to %s initialized', contact_points)
+
+    def close(self):
+        self.closed = True
+        for connection in self.connections:
+            connection.close()
+
+        for request in self.queries.values():
+            request.future.set_exception(ConnectionShutdown())
+
+        self.queries.clear()
+        self.queue.clear()
 
     def connection_status_callback(self, identifier, status):
         if status:
@@ -77,6 +89,10 @@ class Pool(object):
             request.future.set_result(result)
 
     def execute(self, request):
+        if self.closed:
+            request.future.set_exception(ConnectionShutdown())
+            return
+
         key = object()
 
         request.add_timeout(functools.partial(self._on_timeout, key))
@@ -114,7 +130,7 @@ class Pool(object):
         connection.consecutive_errors += 1
         if connection.consecutive_errors > CONSECUTIVE_ERRORS_LIMIT and self.is_alive(connection.identifier):
             log.info('closing connection to %s due to consecutive errors limit exceeded', connection.host)
-            connection.close()
+            connection.reconnect()
 
     def _log_stats(self, request):
         if self.statsd_client and request is not None:

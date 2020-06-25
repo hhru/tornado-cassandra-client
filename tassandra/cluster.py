@@ -22,6 +22,9 @@ class Cluster(object):
 
         self.pool = Pool(contact_points, port, statsd_client)
 
+    def close(self):
+        self.pool.close()
+
     def execute(self, query, timeout=DEFAULT_TIMEOUT):
         if not isinstance(timeout, collections.Iterable):
             timeout = (timeout,)
