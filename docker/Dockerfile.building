@@ -1,4 +1,4 @@
-FROM registry.pyn.ru:5000/python3.7-ubuntu18-production:2019.01.15
+FROM registry.pyn.ru/python3.7-ubuntu18-production:2020.12.28
 
 RUN mkdir -p /home/build
 WORKDIR /home/build
