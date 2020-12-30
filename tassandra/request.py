@@ -1,9 +1,7 @@
-# coding=utf-8
-
 from tornado.ioloop import IOLoop
 
 
-class Request(object):
+class Request:
     def __init__(self, query, future, timeouts, tries=0):
         self._timeout_handler = None
 

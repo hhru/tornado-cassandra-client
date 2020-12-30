@@ -1,5 +1,3 @@
-# coding=utf-8
-
 import collections
 import functools
 import logging
@@ -16,7 +14,7 @@ log = logging.getLogger('tassandra.pool')
 CONSECUTIVE_ERRORS_LIMIT = 500
 
 
-class Pool(object):
+class Pool:
     def __init__(self, contact_points, port, statsd_client=None):
         self.closed = False
         self.queue = collections.deque()

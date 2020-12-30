@@ -1,5 +1,3 @@
-# coding=utf-8
-
 import socket
 import logging
 import time
@@ -12,7 +10,6 @@ from tornado.iostream import IOStream
 from cassandra.protocol import ProtocolHandler, StartupMessage, ReadyMessage, ErrorMessage
 from cassandra.marshal import v3_header_unpack, int32_unpack
 
-from tassandra.compat import itervalues
 
 HEADER_LENGTH = 5
 FULL_HEADER_LENGTH = 9
@@ -56,7 +53,7 @@ def close_on_error(callback):
     return wrapper
 
 
-class Connection(object):
+class Connection:
     def __init__(self, identifier, host, port, status_callback):
         self.identifier = identifier
         self.host = host
@@ -83,7 +80,7 @@ class Connection(object):
             self.stream.set_close_callback(None)
             self.stream.close()
 
-        for callback in itervalues(self._callbacks):
+        for callback in iter(self._callbacks.values()):
             callback(ConnectionShutdown(host=self.host))
 
     def reconnect(self):
