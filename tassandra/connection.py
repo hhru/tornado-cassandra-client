@@ -22,7 +22,7 @@ MAXIMUM_RECONNECT_TIMEOUT = 5
 log = logging.getLogger('tassandra.connection')
 
 
-class ConnectionShutdown(Exception):
+class ConnectionShutdownException(Exception):
 
     def __init__(self, host=None, request=None):
         self.host = host
@@ -32,7 +32,7 @@ class ConnectionShutdown(Exception):
         return 'Connection to {} closed ({})'.format(self.host, self.request)
 
 
-class RequestTimeout(Exception):
+class RequestTimeoutException(Exception):
 
     def __init__(self, request=None):
         self.request = request
@@ -81,7 +81,7 @@ class Connection:
             self.stream.close()
 
         for callback in iter(self._callbacks.values()):
-            callback(ConnectionShutdown(host=self.host))
+            callback(ConnectionShutdownException(host=self.host))
 
     def reconnect(self):
         log.info('connection to %s closed.', self.host)
@@ -132,7 +132,7 @@ class Connection:
         elif isinstance(message, ErrorMessage):
             log.info('closing connection to %s due to startup error: %s', self.host, message.summary_msg())
             self.reconnect()
-        elif isinstance(message, ConnectionShutdown):
+        elif isinstance(message, ConnectionShutdownException):
             log.debug('connection to %s was closed during the startup handshake', self.host)
         else:
             log.error('closing connection to %s due to unexpected response during startup: %r', self.host, message)
@@ -168,7 +168,7 @@ class Connection:
 
     def send_msg(self, query, cb):
         if self.stream.closed():
-            cb(ConnectionShutdown(self.host))
+            cb(ConnectionShutdownException(self.host))
             return
 
         request_id = self.get_request_id()
