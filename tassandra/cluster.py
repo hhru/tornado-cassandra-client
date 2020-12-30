@@ -18,6 +18,9 @@ class Cluster:
 
         self.pool = Pool(contact_points, port, statsd_client)
 
+    async def init(self):
+        await self.pool.init()
+
     def close(self):
         self.pool.close()
 

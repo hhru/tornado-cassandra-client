@@ -1,3 +1,4 @@
+import asyncio
 import collections
 import functools
 import logging
@@ -22,6 +23,7 @@ class Pool:
         self.num_connection = len(contact_points)
         self.connections = []
         self.status_mask = 0
+        self.request_tasks = []
 
         identifier = 1
         for contact_point in contact_points:
@@ -30,6 +32,9 @@ class Pool:
             identifier <<= 1
         self.statsd_client = statsd_client
         log.info('connection pool to %s initialized', contact_points)
+
+    async def init(self):
+        await asyncio.gather(*[connection.connect() for connection in self.connections])
 
     def close(self):
         self.closed = True
@@ -41,6 +46,9 @@ class Pool:
 
         self.queries.clear()
         self.queue.clear()
+
+        [task.cancel() for task in self.request_tasks if not task.done()]
+        self.request_tasks = []
 
     def connection_status_callback(self, identifier, status):
         if status:
@@ -107,7 +115,8 @@ class Pool:
             key = self.queue.popleft()
             request = self.queries[key]
             connection = self.get_connection(request.used_connections_bitmap)
-            request.send(connection, functools.partial(self.result_callback, key))
+            self.request_tasks.append(
+                asyncio.ensure_future(request.send(connection, functools.partial(self.result_callback, key))))
 
     def get_connection(self, used_connections_bitmap):
         possible = self.status_mask & ~ used_connections_bitmap
