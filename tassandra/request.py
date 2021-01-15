@@ -1,9 +1,7 @@
-# coding=utf-8
-
 from tornado.ioloop import IOLoop
 
 
-class Request(object):
+class Request:
     def __init__(self, query, future, timeouts, tries=0):
         self._timeout_handler = None
 
@@ -29,10 +27,10 @@ class Request(object):
         self.tries += 1
         self.failed = isinstance(response, Exception)
 
-    def send(self, connection, result_callback):
+    async def send(self, connection, result_callback):
         self.used_connections_bitmap |= connection.identifier
         self.current_connection = connection
-        connection.send_msg(self.query, result_callback)
+        await connection.send_msg(self.query, result_callback)
 
     def __str__(self):
         return 'Request, {} of {} retries'.format(self.tries, len(self.timeouts))

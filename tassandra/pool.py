@@ -1,5 +1,4 @@
-# coding=utf-8
-
+import asyncio
 import collections
 import functools
 import logging
@@ -8,7 +7,7 @@ import random
 from cassandra.query import named_tuple_factory
 from tornado.ioloop import IOLoop
 
-from tassandra.connection import Connection, RequestTimeout, ConnectionShutdown
+from tassandra.connection import Connection, RequestTimeoutException, ConnectionShutdownException
 
 log = logging.getLogger('tassandra.pool')
 
@@ -16,7 +15,7 @@ log = logging.getLogger('tassandra.pool')
 CONSECUTIVE_ERRORS_LIMIT = 500
 
 
-class Pool(object):
+class Pool:
     def __init__(self, contact_points, port, statsd_client=None):
         self.closed = False
         self.queue = collections.deque()
@@ -24,6 +23,7 @@ class Pool(object):
         self.num_connection = len(contact_points)
         self.connections = []
         self.status_mask = 0
+        self.request_tasks = []
 
         identifier = 1
         for contact_point in contact_points:
@@ -33,16 +33,22 @@ class Pool(object):
         self.statsd_client = statsd_client
         log.info('connection pool to %s initialized', contact_points)
 
+    async def init(self):
+        await asyncio.gather(*[connection.connect() for connection in self.connections])
+
     def close(self):
         self.closed = True
         for connection in self.connections:
             connection.close()
 
         for request in self.queries.values():
-            request.future.set_exception(ConnectionShutdown())
+            request.future.set_exception(ConnectionShutdownException())
 
         self.queries.clear()
         self.queue.clear()
+
+        [task.cancel() for task in self.request_tasks if not task.done()]
+        self.request_tasks = []
 
     def connection_status_callback(self, identifier, status):
         if status:
@@ -73,7 +79,7 @@ class Pool(object):
             if request.is_retry_possible():
                 self.execute(request)
             else:
-                if isinstance(message, ConnectionShutdown) or isinstance(message, RequestTimeout):
+                if isinstance(message, ConnectionShutdownException) or isinstance(message, RequestTimeoutException):
                     message.request = request
                 request.future.set_exception(message)
         else:
@@ -90,7 +96,7 @@ class Pool(object):
 
     def execute(self, request):
         if self.closed:
-            request.future.set_exception(ConnectionShutdown())
+            request.future.set_exception(ConnectionShutdownException())
             return
 
         key = object()
@@ -109,7 +115,8 @@ class Pool(object):
             key = self.queue.popleft()
             request = self.queries[key]
             connection = self.get_connection(request.used_connections_bitmap)
-            request.send(connection, functools.partial(self.result_callback, key))
+            self.request_tasks.append(
+                asyncio.ensure_future(request.send(connection, functools.partial(self.result_callback, key))))
 
     def get_connection(self, used_connections_bitmap):
         possible = self.status_mask & ~ used_connections_bitmap
@@ -120,7 +127,7 @@ class Pool(object):
         return self.connections[ready[random.randint(0, len(ready) - 1)]]
 
     def _on_timeout(self, key):
-        self.result_callback(key, RequestTimeout())
+        self.result_callback(key, RequestTimeoutException())
 
     def _increase_consecutive_errors(self, request):
         if request.current_connection is None:
