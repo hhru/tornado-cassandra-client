@@ -32,7 +32,7 @@ setup(
     test_suite='tests',
     install_requires=[
         'tornado<6.0',
-        'cassandra-driver==3.24.0'
+        'cassandra-driver==3.25.0'
     ],
     tests_require=[
         'ccm',
