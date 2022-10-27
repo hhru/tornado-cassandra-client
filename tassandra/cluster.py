@@ -7,7 +7,7 @@ from tassandra.pool import Pool
 from tassandra.request import Request
 
 
-DEFAULT_TIMEOUT = (0.5,)
+DEFAULT_TIMEOUT = (5,)
 
 
 class Cluster:

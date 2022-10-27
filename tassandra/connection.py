@@ -194,5 +194,5 @@ class Connection:
             self.status_callback(self.identifier, False)
 
         self._callbacks[request_id] = callback
-        message = ProtocolHandler.encode_message(query, request_id, DEFAULT_CQL_VERSION_NUMBER, None, False)
+        message = ProtocolHandler.encode_message(query, request_id, 4, None, False)
         await self.stream.write(message)
