@@ -12,7 +12,7 @@ from cassandra.marshal import v3_header_unpack, int32_unpack
 
 HEADER_LENGTH = 5
 FULL_HEADER_LENGTH = 9
-DEFAULT_CQL_VERSION = '3.0.0'
+DEFAULT_CQL_VERSION = '4.0.0'
 DEFAULT_CQL_VERSION_NUMBER = 4
 RECONNECT_TIMEOUT = 0.2
 MAXIMUM_RECONNECT_TIMEOUT = 5
@@ -41,6 +41,14 @@ class RequestTimeoutException(Exception):
 
 
 class StartupException(Exception):
+    pass
+
+
+class StartupException2(Exception):
+    pass
+
+
+class StartupException3(Exception):
     pass
 
 
@@ -117,6 +125,7 @@ class Connection:
                 await self.read_body(body_length)
             except Exception as e:
                 log.exception(f'unhandled exception during recursive_reading {type(e).__name__}, close connection')
+                log.exception(f'{e}')
                 asyncio.ensure_future(self.reconnect())
                 break
 
@@ -150,12 +159,12 @@ class Connection:
             log.info('connection to %s established', self.host)
         elif isinstance(message, ErrorMessage):
             log.info('closing connection to %s due to startup error: %s', self.host, message.summary_msg())
-            raise StartupException()
+            raise StartupException2()
         elif isinstance(message, ConnectionShutdownException):
             log.debug('connection to %s was closed during the startup handshake', self.host)
         else:
             log.error('closing connection to %s due to unexpected response during startup: %r', self.host, message)
-            raise StartupException()
+            raise StartupException3()
 
     def _connection_prepare(self):
         log.debug('attempt to connect to %s.', self.host)
