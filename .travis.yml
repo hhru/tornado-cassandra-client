@@ -3,7 +3,7 @@ matrix:
   include:
     - os: linux
       dist: trusty
-      python: "3.6"
+      python: "3.9"
 install:
   - pip3 install codecov
   - python3 setup.py install

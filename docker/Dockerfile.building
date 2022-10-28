@@ -1,4 +1,4 @@
-FROM registry.pyn.ru/python3.7-ubuntu18-production:2020.12.28
+FROM registry.pyn.ru/python3.9-ubuntu20-production:2022.10.24
 
 RUN mkdir -p /home/build
 WORKDIR /home/build
@@ -11,4 +11,4 @@ COPY README.md README.md
 RUN apt-get update && apt-get install -y openjdk-8-jre-headless
 
 # Тесты не проходят на hh-release
-# RUN python3.7 setup.py test
+# RUN python3.9 setup.py test
