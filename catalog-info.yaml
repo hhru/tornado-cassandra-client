@@ -1,0 +1,13 @@
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: tornado-cassandra-client
+  annotations:
+    github.com/project-slug: hhru/tornado-cassandra-client
+  tags:
+    - backend
+    - python
+spec:
+  type: library
+  lifecycle: production
