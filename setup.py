@@ -32,12 +32,12 @@ setup(
     test_suite='tests',
     install_requires=[
         'tornado<6.0',
-        'cassandra-driver==3.25.0'
+        'cassandra-driver'
     ],
     tests_require=[
         'ccm',
         'nose',
-        'pycodestyle == 2.2.0',
+        'pycodestyle',
     ],
     zip_safe=False
 )
