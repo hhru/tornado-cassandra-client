@@ -1,4 +1,4 @@
-import collections
+from collections.abc import Iterable
 import numbers
 
 from tornado.concurrent import Future
@@ -25,7 +25,7 @@ class Cluster:
         self.pool.close()
 
     def execute(self, query, timeout=DEFAULT_TIMEOUT):
-        if not isinstance(timeout, collections.Iterable):
+        if not isinstance(timeout, Iterable):
             timeout = (timeout,)
         for t in timeout:
             if not isinstance(t, numbers.Number):
