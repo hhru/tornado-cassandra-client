@@ -5,7 +5,8 @@ WORKDIR /home/build
 
 COPY tassandra tassandra
 COPY tests tests
-COPY setup.py setup.py
+COPY pyproject.toml pyproject.toml
+COPY poetry.lock poetry.lock
 COPY README.md README.md
 
 RUN apt-get update && apt-get install -y openjdk-8-jre-headless

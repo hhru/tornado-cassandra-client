@@ -4,7 +4,7 @@ import unittest
 
 import pycodestyle
 
-from . import PROJECT_ROOT
+from tests import PROJECT_ROOT
 
 
 class TestPycodestyle(unittest.TestCase):
@@ -17,4 +17,4 @@ class TestPycodestyle(unittest.TestCase):
             max_line_length=120
         )
         result = style_guide.check_files(map(partial(os.path.join, PROJECT_ROOT), TestPycodestyle.CHECKED_PATHS))
-        self.assertEqual(result.total_errors, 0, 'Pep8 found code style errors or warnings')
+        assert result.total_errors == 0, 'Pep8 found code style errors or warnings'

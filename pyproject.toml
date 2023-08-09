@@ -1,0 +1,33 @@
+[build-system]
+requires = ['poetry-core>=1.5.1']
+build-backend = 'poetry.core.masonry.api'
+
+[tool.poetry]
+name = 'tassandra'
+version = '2.0.11'
+description = 'Tornado cassandra client'
+authors = ['architecture <arch-team@hh.ru>']
+repository = 'https://github.com/hhru/tornado-cassandra-client'
+readme = 'README.md'
+
+[tool.poetry.dependencies]
+python = '3.11.*'
+tornado = '~=6.3.2'
+cassandra-driver = '~=3.28.0'
+
+[tool.poetry.group.test.dependencies]
+pytest = '>=7.2.0'
+pytest-asyncio = '0.21.1'
+pycodestyle = '2.10.0'
+ccm = '3.1.5'
+
+[tool.pytest.ini_options]
+testpaths = 'tests'
+addopts = '''
+  --asyncio-mode=auto
+  -p no:warnings
+'''
+
+[tool.isort]
+line_length=120
+multi_line_output=4
