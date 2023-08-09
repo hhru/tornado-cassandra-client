@@ -31,8 +31,8 @@ setup(
     packages=['tassandra'],
     test_suite='tests',
     install_requires=[
-        'tornado==6.2',
-        'cassandra-driver==3.25.0'
+        'tornado==6.3.2',
+        'cassandra-driver==3.28.0'
     ],
     tests_require=[
         'ccm',
