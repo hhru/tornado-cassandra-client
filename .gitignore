@@ -7,3 +7,6 @@
 *.egg/
 *.egg
 .coverage
+.venv
+.pytest_cache
+.cassandra
