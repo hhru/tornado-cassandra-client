@@ -15,9 +15,10 @@ class TestClient:
         cassandra_dir = '.cassandra'
         if os.path.exists(PROJECT_ROOT + '/' + cassandra_dir):
             shutil.rmtree(PROJECT_ROOT + '/' + cassandra_dir, ignore_errors=True)
-        cls.ccm_cluster = ccmlib.cluster.Cluster(f'{PROJECT_ROOT}', '.cassandra', cassandra_version='2.2.6')
-        node = cls.ccm_cluster.populate(1).start()[0][0].network_interfaces['binary']
-        cls.cluster = Cluster(contact_points=[node[0]], port=node[1])
+        cls.ccm_cluster = ccmlib.cluster.Cluster(f'{PROJECT_ROOT}', '.cassandra', cassandra_version='4.0.7')
+        nodes = cls.ccm_cluster.populate(1).start(no_wait=True, verbose=True,)
+        rpc_address, native_transport_port = nodes[0][0].network_interfaces['binary']
+        cls.cluster = Cluster(contact_points=[rpc_address], port=native_transport_port)
 
     @classmethod
     def teardown_class(cls):
